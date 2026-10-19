@@ -10,9 +10,11 @@
 - **P / Escape:** pausar y continuar.
 - **Tablet:** deslizar el dedo o usar los botones en pantalla.
 
-Juntá baterías y paquetes de datos. Los choques gastan energía. En cada relevo, elegí un teléfono con señal: el enlace verde consume menos batería, el enlace débil acelera la carrera y consume más. Si elegís un teléfono sin señal, el mensaje espera y la batería sigue bajando hasta que cambies de carril.
+Juntá baterías y paquetes de datos. Los choques gastan energía. En cada relevo, elegí un teléfono con señal: el buen enlace (verde) recupera 6% y consume menos batería, la señal media (azul) cuenta sin recargar ni aplicar daño extra, y el enlace sin conexión (rojo) quita 24%, no suma un relevo y deja que la carrera continúe. El consumo habitual de la carrera se mantiene. Las entregas dan puntos, sin recarga adicional.
 
-Cada **tres relevos** se completa una entrega y aparece otro mensaje. La carrera sigue, aumenta la velocidad y termina al agotarse la batería. El ranking de distancia se guarda **en ese navegador**, sin cuentas ni servidor.
+Los tres teléfonos se generan de forma independiente: pueden repetirse y aparecer las 26 combinaciones válidas, excepto tres enlaces rojos. Siempre existe al menos un enlace válido.
+
+Cada **tres relevos válidos** se completa una entrega y aparece otro mensaje. La carrera sigue, aumenta la velocidad y termina al agotarse la batería. El ranking de distancia se guarda **en ese navegador**, sin cuentas ni servidor.
 
 ## Abrir en la computadora
 
@@ -53,4 +55,8 @@ Es una **simulación lúdica** del almacenamiento y reenvío de mensajes. No usa
 
 `core.js` contiene las reglas y la generación infinita. `game.js` dibuja el mundo 3D, procesa controles, sonido y ranking. `style.css` e `index.html` contienen la interfaz. `sw.js` guarda los archivos para uso sin conexión. `vendor/` contiene Three.js 0.180.0, distribuido bajo MIT, con su licencia original.
 
-Pruebas de las reglas: `npm test` o `node --test tests/core.test.js`. Navegador moderno con WebGL 2. Gráficos, personajes y sonidos originales generados por código. Sin analítica, anuncios, rastreadores ni fuentes externas.
+Pruebas de las reglas: `npm test` o `node --test tests/core.test.js`. Navegador moderno con WebGL 2. Gráficos, personajes y sonidos originales generados por código. Logo original y paleta de [Signum Vitae](https://signum-vitae.vercel.app/). Manrope se distribuye localmente bajo la licencia SIL Open Font License, incluida en `assets/fonts/OFL.txt`. Sin analítica, anuncios, rastreadores ni solicitudes de fuentes externas.
+
+## Ranking y alojamiento
+
+El ranking sigue siendo local. GitHub Pages sirve archivos estáticos y esta instalación no tiene un backend o una base de datos de puntuaciones. Compartir el ranking entre dispositivos requiere incorporar un servicio persistente separado. No se incluyen credenciales privadas en el juego.

@@ -1,1 +1,1 @@
-{"name":"Signum Relay — La señal sos vos","short_name":"Signum Relay","start_url":"./","scope":"./","display":"fullscreen","background_color":"#101b2b","theme_color":"#101b2b","icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
+{"name":"Signum Relay — La señal sos vos","short_name":"Signum Relay","start_url":"./","scope":"./","display":"fullscreen","background_color":"#071722","theme_color":"#071722","icons":[{"src":"./assets/signum-vitae-logo.png","sizes":"256x256","type":"image/png","purpose":"any"}]}

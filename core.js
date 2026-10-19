@@ -2,9 +2,17 @@
 export const LANES = [-3, 0, 3];
 export const MESSAGES = ['Soy yo. Estoy bien. Necesito avisar a mi familia.', 'Estamos en el punto de encuentro. ¿Pueden venir?', 'Encontramos refugio. Avisen que estamos a salvo.', 'Necesitamos agua en el centro de asistencia.', 'El camino al refugio está despejado.'];
 export function randomGenerator(seed) { let s = seed >>> 0; return () => { s += 0x6D2B79F5; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+export const BALANCE = Object.freeze({ startSpeed: 18, maxSpeed: 32, baseDrain: .85, ecoDrain: .55, redDamage: 24, batteryCharge: 7 });
+export function generateRoutes(random) {
+  const choose = () => { const value = random(); return value < .34 ? 'eco' : value < .72 ? 'normal' : 'blocked'; };
+  const kinds = Array.from({ length: 3 }, choose);
+  // Repetitions are intentional. Only the impossible all-red combination is excluded.
+  if (kinds.every(kind => kind === 'blocked')) kinds[Math.floor(random() * 3)] = random() < .6 ? 'normal' : 'eco';
+  return kinds.map(kind => ({ kind, label: kind === 'eco' ? 'Buen enlace' : kind === 'normal' ? 'Señal media' : 'Sin conexión', charge: kind === 'eco' ? 6 : 0 }));
+}
 export class RelayRun {
   constructor(seed = Date.now()) {
-    this.random = randomGenerator(seed); this.seed = seed; this.distance = 0; this.elapsed = 0; this.lane = 1; this.x = 0; this.battery = 100; this.score = 0; this.relays = 0; this.deliveries = 0; this.speed = 17; this.y = 0; this.vy = 0; this.slide = 0; this.invincible = 0; this.combo = 0; this.maxCombo = 0; this.pickups = 0; this.hits = 0; this.over = false; this.waiting = false; this.route = 'normal'; this.routeUntil = 0; this.events = []; this.feedback = []; this.nextRow = 48; this.nextRelay = 220; this.generatedUntil = 0; this.generate();
+    this.random = randomGenerator(seed); this.seed = seed; this.distance = 0; this.elapsed = 0; this.lane = 1; this.x = 0; this.battery = 100; this.score = 0; this.relays = 0; this.deliveries = 0; this.speed = BALANCE.startSpeed; this.y = 0; this.vy = 0; this.slide = 0; this.invincible = 0; this.combo = 0; this.maxCombo = 0; this.pickups = 0; this.hits = 0; this.over = false; this.waiting = false; this.route = 'normal'; this.routeUntil = 0; this.events = []; this.feedback = []; this.nextRow = 48; this.nextRelay = 220; this.generatedUntil = 0; this.generate();
   }
   emit(type, data = {}) { this.feedback.push({ type, ...data }); }
   move(dir) { if (this.over) return; this.lane = Math.max(0, Math.min(2, this.lane + dir)); }
@@ -13,8 +21,7 @@ export class RelayRun {
   generate() {
     const horizon = this.distance + 235;
     while (this.nextRelay < horizon + 35) {
-      const blocked = Math.floor(this.random() * 3), weak = (blocked + 1 + Math.floor(this.random() * 2)) % 3;
-      const routes = Array.from({length: 3}, (_,i) => i === blocked ? { kind: 'blocked', label: 'Sin señal', charge: 0 } : i === weak ? { kind: 'fast', label: 'Señal débil', charge: 2 } : { kind: 'eco', label: 'Buen enlace', charge: 8 });
+      const routes = generateRoutes(this.random);
       this.events.push({ id: 'relay-' + this.nextRelay, type: 'relay', d: this.nextRelay, routes, done: false }); this.nextRelay += 220;
     }
     while (this.nextRow < horizon) {
@@ -24,12 +31,12 @@ export class RelayRun {
         const type = d < 80 ? 'battery' : roll < .38 ? 'barrier' : roll < .65 ? 'beam' : roll < .90 ? 'block' : 'deadzone';
         this.events.push({ id: 'ob-' + d, type, d, lane, done: false });
         // There is always an unobstructed lane. Later rows can have two hazards.
-        if (d > 850 && this.random() < .34) this.events.push({ id: 'ob2-' + d, type: this.random() < .5 ? 'barrier' : 'block', d, lane: (lane + 1) % 3, done: false });
+        if (d > 550 && this.random() < Math.min(.44, .25 + d / 16000)) this.events.push({ id: 'ob2-' + d, type: this.random() < .5 ? 'barrier' : 'block', d, lane: (lane + 1) % 3, done: false });
         const pickupLane = (lane + 1 + Math.floor(this.random() * 2)) % 3;
-        this.events.push({ id: 'battery-' + d, type: 'battery', d: d + 8, lane: pickupLane, done: false });
+        if (d < 110 || this.random() < .7) this.events.push({ id: 'battery-' + d, type: 'battery', d: d + 8, lane: pickupLane, done: false });
         if (this.random() < .65) for (let j=0;j<3;j++) this.events.push({ id: 'data-' + d + '-' + j, type: 'data', d: d + 13 + j * 3, lane: pickupLane, done: false });
       }
-      this.nextRow += Math.max(16, 27 - this.distance / 900) + this.random() * 7;
+      this.nextRow += Math.max(16, 25 - this.distance / 750) + this.random() * 6;
     }
     this.generatedUntil = horizon;
   }
@@ -39,33 +46,35 @@ export class RelayRun {
     this.invincible = Math.max(0, this.invincible - dt); this.slide = Math.max(0, this.slide - dt);
     if (this.y > 0 || this.vy > 0) { this.vy -= 27 * dt; this.y += this.vy * dt; if (this.y < 0) { this.y = 0; this.vy = 0; } }
     this.route = this.distance > this.routeUntil ? 'normal' : this.route;
-    const routeSpeed = this.route === 'fast' ? 2 : this.route === 'eco' ? -.7 : 0;
-    this.speed = Math.min(30, 17 + this.distance / 500) + routeSpeed;
+    this.speed = Math.min(BALANCE.maxSpeed, BALANCE.startSpeed + this.distance / 400);
     let advance = this.speed * dt;
     const gate = this.events.find(e => e.type === 'relay' && !e.done && e.d >= this.distance - 1);
     this.waiting = false;
     if (gate && this.distance + advance >= gate.d - 3) {
-      // The lateral move has to actually reach the phone, not just be queued.
-      const route = gate.routes[this.lane];
-      if (route.kind === 'blocked' || Math.abs(this.x - LANES[this.lane]) > .6) {
-        advance = Math.max(0, gate.d - 3 - this.distance); this.waiting = true;
-        if (!gate.warned) { gate.warned = true; this.emit('no-signal'); }
+      // Contact follows the courier's physical position, including during a lane change.
+      const physicalLane = Math.max(0, Math.min(2, Math.round((this.x + 3) / 3)));
+      const route = gate.routes[physicalLane];
+      gate.done = true;
+      if (route.kind === 'blocked') {
+        this.battery = Math.max(0, this.battery - BALANCE.redDamage); this.hits++; this.combo = 0; this.invincible = 1.05;
+        this.route = 'normal'; this.routeUntil = 0;
+        this.emit('relay-miss', { lane: physicalLane, damage: BALANCE.redDamage });
       } else {
-        gate.done = true; this.relays++; this.score += 300; this.battery = Math.min(100, this.battery + route.charge); this.route = route.kind; this.routeUntil = gate.d + 180; this.combo += 1;
-        this.emit('relay', { index: this.relays, route: route.kind, lane: this.lane });
-        if (this.relays % 3 === 0) { this.deliveries++; this.score += 1000; this.battery = Math.min(100, this.battery + 12); this.emit('delivery', { count: this.deliveries }); }
+        this.relays++; this.score += 300; this.battery = Math.min(100, this.battery + route.charge); this.route = route.kind; this.routeUntil = gate.d + 180; this.combo += 1;
+        this.emit('relay', { index: this.relays, route: route.kind, lane: physicalLane, charge: route.charge });
+        if (this.relays % 3 === 0) { this.deliveries++; this.score += 1000; this.emit('delivery', { count: this.deliveries }); }
       }
     }
     this.distance += advance;
-    const drain = this.waiting ? 7 : this.route === 'eco' ? .40 : this.route === 'fast' ? .95 : .65;
+    const drain = this.route === 'eco' ? BALANCE.ecoDrain : BALANCE.baseDrain;
     this.battery = Math.max(0, this.battery - drain * dt);
     for (const event of this.events) {
       if (event.done || event.type === 'relay' || event.d > this.distance + .6) continue;
       if (event.d < this.distance - 4) { event.done = true; continue; }
       if (Math.abs(this.x - LANES[event.lane]) > .95) continue;
       event.done = true;
-      if (event.type === 'battery') { this.battery = Math.min(100, this.battery + 9); this.pickups++; this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo); this.score += 35 + Math.min(this.combo, 10) * 5; this.emit('battery', { lane: event.lane }); }
-      else if (event.type === 'data') { this.score += 15 + Math.min(this.combo, 10) * 3; this.emit('data', { lane: event.lane }); }
+      if (event.type === 'battery') { this.battery = Math.min(100, this.battery + BALANCE.batteryCharge); this.pickups++; this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo); this.score += 35 + Math.min(this.combo, 10) * 5; this.emit('battery', { lane: event.lane, charge: BALANCE.batteryCharge }); }
+      else if (event.type === 'data') { const points = 15 + Math.min(this.combo, 10) * 3; this.score += points; this.emit('data', { lane: event.lane, points }); }
       else {
         const safe = event.type === 'barrier' && this.y > 1.05 || event.type === 'beam' && this.slide > .08;
         if (safe) { this.score += 60; this.combo++; this.emit('dodge'); }
