@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111c2c">
+  <meta name="description" content="La señal sos vos. Un runner infinito de Signum Vitae: esquivá obstáculos, cuidá la batería y llevá mensajes de teléfono en teléfono.">
+  <title>Signum Relay — La señal sos vos</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <canvas id="world" aria-label="Pista tridimensional de Signum Relay"></canvas>
+  <div id="vignette" aria-hidden="true"></div>
+  <div id="impact" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="wordmark" href="./" aria-label="Signum Relay, inicio"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M8 28V12m8 22V6m8 22V12m8 11v-6" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg><span>SIGNUM<span class="wordmark-light">RELAY</span></span></a>
+    <span class="stand-label">UNA SEÑAL PUEDE HACER LA DIFERENCIA</span>
+    <div class="top-actions">
+      <button id="soundBtn" class="icon-btn" aria-label="Silenciar sonido" title="Sonido"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Zm4 3a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg></button>
+      <button id="fullscreenBtn" class="icon-btn" aria-label="Pantalla completa" title="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
+      <button id="pauseBtn" class="icon-btn hidden" aria-label="Pausar partida" title="Pausar"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+    </div>
+  </header>
+
+  <main id="home" class="screen home-screen">
+    <div class="home-content">
+      <div class="eyebrow"><span class="live-dot"></span> EL MENSAJE SIGUE EN CAMINO</div>
+      <h1>LA SEÑAL<br>SOS <em>VOS.</em></h1>
+      <p class="intro">La red cayó. El mensaje tiene que llegar.<br>Corré, conectá teléfonos y mantené viva la batería.</p>
+      <div class="home-actions"><button id="startBtn" class="primary-btn">INICIAR MISIÓN <span>↗</span></button><button id="helpBtn" class="text-btn">Cómo jugar <span>?</span></button></div>
+      <div class="mission-stats"><div><strong>∞</strong><span>PISTA INFINITA</span></div><div><strong>3</strong><span>RELEVOS POR ENTREGA</span></div><div><strong>1</strong><span>MENSAJE A LA VEZ</span></div></div>
+      <div class="home-record"><span class="trophy">✦</span><div><small>RÉCORD EN ESTA PANTALLA</small><strong id="homeRecord">Sé el primero en llevar la señal</strong></div></div>
+    </div>
+    <div class="world-label"><span class="live-dot"></span> SECTOR 01 <span class="label-slash">/</span> LA CIUDAD SIN RED</div>
+    <footer class="home-footer"><span>SIGNUM VITAE · EXPO TEC</span><span>COMPU + TABLET <span class="footer-dot">·</span> SIN DESCARGAS</span><button id="aboutBtn" class="footer-about">Sobre el proyecto</button></footer>
+  </main>
+
+  <section id="hud" class="hidden" aria-label="Estado de la partida">
+    <div class="hud-left"><div class="hud-caption">BATERÍA <span id="batteryValue">100%</span></div><div class="battery-track"><div id="batteryFill"></div></div><small id="batteryHint">Mantené viva la señal</small></div>
+    <div class="hud-center"><span class="hud-caption">DISTANCIA</span><strong><span id="distanceValue">0</span><small> m</small></strong></div>
+    <div class="hud-right"><span class="hud-caption">ENTREGAS</span><strong id="deliveriesValue">00</strong><div id="relayDots" class="relay-dots"><i></i><i></i><i></i></div></div>
+    <div class="mission-strip"><span class="live-dot"></span><span id="missionText">Soy yo. Estoy bien. Necesito avisar a mi familia.</span><span id="scoreValue">0 PTS</span></div>
+  </section>
+
+  <div id="relayNotice" class="relay-notice hidden"><div class="relay-heading"><span id="relayTitle">ELEGÍ UN TELÉFONO</span><span id="relayDistance">80 m</span></div><div id="routeOptions" class="route-options"></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="countdown" class="hidden" aria-live="assertive"></div>
+  <div id="touchControls" class="hidden" aria-label="Controles táctiles"><div class="control-pair"><button data-action="left" aria-label="Ir a la izquierda">←</button><button data-action="right" aria-label="Ir a la derecha">→</button></div><div class="control-pair"><button data-action="slide" aria-label="Deslizarse">↓<small>DESLIZAR</small></button><button data-action="jump" class="jump-control" aria-label="Saltar">↑<small>SALTAR</small></button></div></div>
+  <div id="desktopHint" class="hidden">← → CAMBIAR CARRIL <span>↑ SALTAR</span><span>↓ DESLIZAR</span><span>P PAUSA</span></div>
+
+  <section id="help" class="screen modal-screen hidden" aria-labelledby="helpTitle"><div class="modal help-modal"><span class="eyebrow">TODO LO QUE NECESITÁS</span><h2 id="helpTitle">Un mensaje.<br>Toda una ciudad.</h2><div class="how-steps"><div><span class="step-icon">↔</span><div><strong>Cambiá de carril</strong><p>Flechas ← → o deslizá el dedo a los costados.</p></div></div><div><span class="step-icon">↥</span><div><strong>Saltá o deslizate</strong><p>↑ / espacio para saltar. ↓ para pasar por debajo. En tablet, deslizá arriba o abajo.</p></div></div><div><span class="step-icon green">ϟ</span><div><strong>Recargá y conectá</strong><p>Juntá baterías. En cada relevo, elegí un teléfono con señal. Cada 3 relevos, una entrega.</p></div></div></div><p class="help-note">La carrera es infinita. Los choques y los enlaces débiles gastan batería. ¿Cuántos mensajes podés entregar?</p><button id="helpPlayBtn" class="primary-btn">VAMOS A CORRER <span>↗</span></button><button class="text-btn modal-back" data-close="help">Volver</button></div></section>
+  <section id="pause" class="screen modal-screen hidden" aria-labelledby="pauseTitle"><div class="modal small-modal"><span class="eyebrow">MENSAJE GUARDADO</span><h2 id="pauseTitle">Tomá aire.</h2><p>Tu mensaje espera acá.</p><button id="resumeBtn" class="primary-btn">SEGUIR CORRIENDO <span>↗</span></button><button id="restartPauseBtn" class="secondary-btn">Volver a empezar</button><button id="homePauseBtn" class="text-btn">Salir al inicio</button></div></section>
+  <section id="result" class="screen modal-screen hidden" aria-labelledby="resultTitle"><div class="modal result-modal"><span class="eyebrow" id="resultEyebrow">LA BATERÍA SE AGOTÓ</span><h2 id="resultTitle">Dejaste tu señal.</h2><div class="result-score"><strong id="resultDistance">0</strong><span>METROS RECORRIDOS</span></div><div class="result-stats"><div><strong id="resultDeliveries">0</strong><span>ENTREGAS</span></div><div><strong id="resultRelays">0</strong><span>RELEVOS</span></div><div><strong id="resultPoints">0</strong><span>PUNTOS</span></div></div><p id="resultLesson" class="result-lesson">Un teléfono cercano puede ser el próximo relevo.</p><div class="save-record"><label for="initials">DEJÁ TUS INICIALES</label><div><input id="initials" maxlength="3" placeholder="VOS" autocomplete="off" autocapitalize="characters" aria-label="Tus iniciales para el récord local"><button id="saveRecordBtn" class="secondary-btn">Guardar marca</button></div><small id="recordStatus">El ranking se guarda solo en este dispositivo.</small></div><button id="replayBtn" class="primary-btn">OTRA CARRERA <span>↗</span></button><button id="resultHomeBtn" class="text-btn">Volver al inicio</button><div id="ranking" class="ranking"></div></div></section>
+  <section id="about" class="screen modal-screen hidden" aria-labelledby="aboutTitle"><div class="modal small-modal"><span class="eyebrow">EL PROYECTO DETRÁS DEL JUEGO</span><h2 id="aboutTitle">Signum Vitae</h2><p>Una beta Android que explora la comunicación local por Bluetooth Low Energy cuando las redes convencionales no están disponibles.</p><p>Este juego representa de forma simplificada la idea de almacenar y reenviar mensajes. Las distancias, la batería y los enlaces son mecánicas de juego, no mediciones del prototipo. La retransmisión entre varios teléfonos requiere validación.</p><button class="primary-btn" data-close="about">VOLVER AL JUEGO <span>↗</span></button></div></section>
+  <div id="loading"><div class="loading-mark">ϟ</div><span>PREPARANDO LA SEÑAL</span><div class="loading-line"></div></div>
+  <noscript>Activá JavaScript para jugar a Signum Relay.</noscript>
+  <script type="module" src="./game.js"></script>
+</body>
+</html>

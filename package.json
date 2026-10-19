@@ -1,0 +1,8 @@
+{
+  "name": "signum-relay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Un runner infinito sobre mensajes, relevos y comunicación sin infraestructura.",
+  "scripts": { "start": "python3 -m http.server 4173 --bind 0.0.0.0", "test": "node --test tests/*.test.js" }
+}
